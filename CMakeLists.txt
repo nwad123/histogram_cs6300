@@ -24,7 +24,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(SOLVERS solvers/serial.cpp solvers/parallel.cpp solvers/tree.cpp)
 set(ARG_PARSER src/parse_args.cpp)
 
-set(OPTS -DNDEBUG -O3 -flto -mtune=native -march=native)
+
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) # LTO
+set(OPTS -DNDEBUG -O3)
 # set(OPTS -DDEBUG -O0 -g3) # uncomment for debug
 
 # Command line interface application
