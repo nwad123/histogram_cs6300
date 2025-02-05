@@ -59,9 +59,9 @@ class Tree
         {
             std::binary_semaphore sem_;
 
-            constexpr simple_semaphore() : sem_(0) {}
-            constexpr auto acquire() -> void { sem_.acquire(); }
-            constexpr auto release() -> void { sem_.release(); }
+            simple_semaphore() : sem_(0) {}
+            auto acquire() -> void { sem_.acquire(); }
+            auto release() -> void { sem_.release(); }
         };
 
         // For each thread we'll need a "send" and "recieve" semaphore to synchronize the passing
@@ -81,26 +81,26 @@ class Tree
         {
             std::vector<semaphore_pair> semaphores_;
 
-            explicit constexpr ThreadSemaphores(/*in*/ const size_t num_threads)
+            explicit ThreadSemaphores(/*in*/ const size_t num_threads)
                 : semaphores_(std::vector<semaphore_pair>(num_threads))
             {}
 
             /// Indicates that the caller thread is ready to receive bins from thread `id`
-            inline constexpr auto ready_to_recv_from(/*in*/ const size_t id) -> void
+            inline auto ready_to_recv_from(/*in*/ const size_t id) -> void
             {
                 semaphores_[id].sender.acquire();
             }
 
             /// Indicates that the caller thread is done receiving bins from thread `id`, which
             /// indicates to thread `id` that they can close.
-            inline constexpr auto done_recving_from(/*in*/ const size_t id) -> void
+            inline auto done_recving_from(/*in*/ const size_t id) -> void
             {
                 semaphores_[id].receiver.release();
             }
 
             /// Indicates that all work has be completed on thread `id` and that it's ready
             /// to be consumed.
-            inline constexpr auto completed_work_on(/*in*/ const size_t id) -> void
+            inline auto completed_work_on(/*in*/ const size_t id) -> void
             {
                 semaphores_[id].sender.release();
                 semaphores_[id].receiver.acquire();
