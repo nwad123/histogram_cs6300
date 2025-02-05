@@ -7,7 +7,7 @@ import pandas as pd
 
 df = pd.read_csv("results/log.csv")
 
-plot_dir = Path("Plots")
+plot_dir = Path("plots")
 os.makedirs(plot_dir, exist_ok=True)
 
 # Plot speedup for number of threads vs. data size
