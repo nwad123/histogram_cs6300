@@ -60,39 +60,6 @@ class Tree
         [[nodiscard]]
         static constexpr auto num_receives(/*in*/ const size_t num_threads, /*in*/ const size_t thread_id) -> size_t;
 
-        /// Provides an iterable abstraction over the id's of the threads that need to be received
-        /// from
-        class receive_list_as_iter
-        {
-          private:
-            const size_t num_receives;
-            const size_t num_threads;
-
-          public:
-            constexpr receive_list_as_iter(/*in*/ const size_t num_threads, /*in*/ const size_t thread_id)
-                : num_receives(Tree::detail::num_receives(num_threads, thread_id)), num_threads(num_threads) {};
-
-            struct iterator {
-                using difference_type = ssize_t;
-                using value_type = size_t;
-                using self = Tree::detail::receive_list_as_iter::iterator;
-
-                [[nodiscard]]
-                constexpr auto operator*() const noexcept -> value_type;
-
-                constexpr auto operator++() noexcept -> self&;
-                constexpr auto operator++(int) noexcept -> self;
-
-                constexpr auto operator==(const self& other) const -> bool;
-            };
-            static_assert(std::forward_iterator<Tree::detail::receive_list_as_iter::iterator>);
-
-            [[nodiscard]]
-            constexpr auto begin() const noexcept -> iterator;
-            [[nodiscard]]
-            constexpr auto end() const noexcept -> iterator;
-        };
-
         /// C++ semaphores can't be default constructed, so I wrote a wrapper class to default
         /// construct them.
         struct simple_semaphore
