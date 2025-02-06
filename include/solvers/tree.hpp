@@ -4,6 +4,7 @@
 #include "types.hpp"
 
 #include <semaphore>
+#include <ranges>
 
 namespace hpc {
 /// The `Tree` solver implements a multithreaded Tree Structured Sum approach to generating a
@@ -136,12 +137,14 @@ constexpr auto hpc::Tree::detail::get_receive_list(
     /*in*/ const size_t thread_id
 ) -> std::vector<size_t>
 {
-    std::vector<size_t> recieves(num_receives(num_threads, thread_id), size_t{ 0 });
+    const auto num_recv = num_receives(num_threads, thread_id);
+    std::vector<size_t> recieves;
+    recieves.reserve(num_recv);
 
-    for (size_t i = 1; auto &recieve : recieves) {
-        recieve = i + thread_id;
-        i = i << 1;
+    for (size_t j = 1; const auto i : std::views::iota(size_t{0}, num_recv)) {
+        const auto next = thread_id + (j << i);
+        if (next >= num_threads) { break; }
+        recieves.push_back(next);
     }
-
     return recieves;
 }
