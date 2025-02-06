@@ -53,6 +53,11 @@ class Tree
             /*in*/ const size_t thread_id
         ) -> std::vector<size_t>;
 
+        /// Calculates the number of receives that thread `i` will perform statically.
+        /// Requires that `i < num_threads`
+        [[nodiscard]]
+        static constexpr auto num_receives(/*in*/ const size_t num_threads, /*in*/ const size_t thread_id) -> size_t;
+
         /// C++ semaphores can't be default constructed, so I wrote a wrapper class to default
         /// construct them.
         struct simple_semaphore
@@ -86,17 +91,11 @@ class Tree
             {}
 
             /// Indicates that the caller thread is ready to receive bins from thread `id`
-            inline auto ready_to_recv_from(/*in*/ const size_t id) -> void
-            {
-                semaphores_[id].sender.acquire();
-            }
+            inline auto ready_to_recv_from(/*in*/ const size_t id) -> void { semaphores_[id].sender.acquire(); }
 
             /// Indicates that the caller thread is done receiving bins from thread `id`, which
             /// indicates to thread `id` that they can close.
-            inline auto done_recving_from(/*in*/ const size_t id) -> void
-            {
-                semaphores_[id].receiver.release();
-            }
+            inline auto done_recving_from(/*in*/ const size_t id) -> void { semaphores_[id].receiver.release(); }
 
             /// Indicates that all work has be completed on thread `id` and that it's ready
             /// to be consumed.
@@ -114,6 +113,22 @@ static_assert(Solver<Tree>);
 
 } // namespace hpc
 
+[[nodiscard]]
+constexpr auto hpc::Tree::detail::num_receives(const size_t num_threads, const size_t thread_id) -> size_t
+{
+    auto bit_log2 = [](const auto of) {
+        const auto bit_width = std::bit_width(of);
+        return static_cast<size_t>(bit_width) - size_t{ 1 };
+    };
+
+    if (thread_id == 0) { return bit_log2(std::bit_ceil(num_threads)); }
+    if (thread_id % 2 == 1) { return 0; }
+    if (std::has_single_bit(thread_id)) { return bit_log2(thread_id); }
+
+    const auto i_ = thread_id - std::bit_floor(thread_id);
+
+    return num_receives(num_threads, i_);
+};
 
 [[nodiscard]]
 constexpr auto hpc::Tree::detail::get_receive_list(
@@ -121,41 +136,12 @@ constexpr auto hpc::Tree::detail::get_receive_list(
     /*in*/ const size_t thread_id
 ) -> std::vector<size_t>
 {
-    // OPTIMIZE: this whole function works fine but definitely does some extra work
-    // that slows it down
-    std::vector<size_t> output;
+    std::vector<size_t> recieves(num_receives(num_threads, thread_id), size_t{ 0 });
 
-    // For `id == 0` we just need to get all threads that are power of 2
-    if (thread_id == 0) {
-        size_t init = 1;
-        while (init < num_threads) {
-            output.push_back(init);
-            init <<= 1;
-        }
-    } 
-    // We don't need to assign any recieves to odd threads, so we only check for 
-    // even `id` threads now.
-    else if (thread_id % 2 == 0) {
-        // The upper bound of possible threads to receieve from
-        const size_t upper_bound = [&]() {
-            const size_t next_power_of_2 = std::bit_ceil(thread_id + 1);
-            return std::min(num_threads, next_power_of_2);
-        }();
-
-        // This is a conservative upperbound on which threads to check
-        const size_t max_iter = [&]() {
-            const size_t num_bits = 8 * sizeof(size_t);
-            return std::min(num_threads - thread_id, num_bits);
-        }();
-
-        // OPTIMIZE: this for-loop is wasteful, and does many empty iterations because
-        // `n` is often much greater than `config.size`
-        for (size_t j = 0; j < max_iter; j++) {
-            const size_t x = size_t{ 1 } << j; // if `1` is not wrapped with size_t it will quickly overflow
-            const size_t n = thread_id + x;
-            if (thread_id % (x * 2) == 0 and n < upper_bound) { output.push_back(n); }
-        }
+    for (size_t i = 1; auto &recieve : recieves) {
+        recieve = i + thread_id;
+        i = i << 1;
     }
 
-    return output;
+    return recieves;
 }
