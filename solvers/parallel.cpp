@@ -1,4 +1,5 @@
 #include "solvers/parallel.hpp"
+#include "solvers/detail/bin_index.hpp"
 #include "solvers/detail/bin_limits.hpp"
 
 #include <algorithm>
@@ -32,22 +33,11 @@ namespace hpc {
         bin.maxes.resize(config.bins);
         bin.counts.resize(config.bins);
 
-        auto insert = [&ranges, &bin](const fp value) {
-            auto bin_it = std::upper_bound(ranges.begin(), ranges.end(), value);
-            // since bin_it will be always be equal to or ahead of `ranges.begin()`
-            // we can assume that this will always be positive, and therefore no
-            // problem to cast it to a size_t
-            auto index = static_cast<size_t>(std::distance(ranges.begin(), bin_it));
-
-            bin.counts[index]++;
-            if (bin.maxes[index] < value) { bin.maxes[index] = value; }
-        };
-
-        for (const auto data : dataset_slice) { insert(data); }
+        for (const auto data : dataset_slice) { hpc::detail::insert_to_bin(data, ranges, bin); }
     };
 
     auto ranges = detail::get_bin_steps(config.bins, { config.min, config.max });
-    auto bins = std::vector<Bin> { config.threads };
+    auto bins = std::vector<Bin>{ config.threads };
 
     std::vector<thread> threads{};
     threads.reserve(config.threads);

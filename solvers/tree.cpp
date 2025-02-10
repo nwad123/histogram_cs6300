@@ -44,18 +44,6 @@ auto Tree::operator()(const Config &config, const std::span<fp> dataset) const -
 
         bin.resize(config.bins);
 
-        // Calculate the bins for this subrange
-        auto insert = [&ranges, &bin](const fp value) {
-            auto bin_it = std::upper_bound(ranges.begin(), ranges.end(), value);
-            // since bin_it will be always be equal to or ahead of `ranges.begin()`
-            // we can assume that this will always be positive, and therefore no
-            // problem to cast it to a size_t
-            auto index = static_cast<size_t>(std::distance(ranges.begin(), bin_it));
-
-            bin.counts[index]++;
-            if (bin.maxes[index] < value) { bin.maxes[index] = value; }
-        };
-
         // Calculate bins for this thread
         for (const auto data : dataset_slice) { hpc::detail::insert_to_bin(data, ranges, bin); }
 
