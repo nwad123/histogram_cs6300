@@ -16,8 +16,8 @@ constexpr auto all_equal(const Bin &first, const T &...bins)
     return ((first == bins) and ...);
 }
 
-/// `SolverTester` objects are constructed with a given `config` and `dataset`, and then 
-/// test all given solvers on that dataset, checking that the results for all given solvers 
+/// `SolverTester` objects are constructed with a given `config` and `dataset`, and then
+/// test all given solvers on that dataset, checking that the results for all given solvers
 /// are equal.
 class SolverTester
 {
@@ -26,7 +26,7 @@ class SolverTester
     const std::span<fp> dataset;
 
   public:
-    /// The `dataset` span must outlive the `SolverTester` object, as the `SolverTester` does not 
+    /// The `dataset` span must outlive the `SolverTester` object, as the `SolverTester` does not
     /// take ownership or copy the span.
     SolverTester(/*in*/ const Config config, /*in*/ const std::span<fp> dataset) : config(config), dataset(dataset) {}
 
@@ -46,6 +46,23 @@ auto SolverTester::operator()(/*in*/ S &&first, /*in*/ Ss &&...solvers) const ->
     // cache the first bin so that we don't test it every time
     const auto first_bin = test(first);
 
-    return ((first_bin == test(solvers)) and ...);
+    auto check = [&](/*in*/ Solver auto right) -> bool {
+        const auto bin_r = test(right);
+
+        const auto equal = (first_bin == bin_r);
+        if (not equal) {
+            fmt::println("Comparison failed");
+            fmt::println("{}", first.name);
+            first_bin.report();
+            fmt::println("{}", right.name);
+            bin_r.report();
+        }
+
+        return equal;
+    };
+
+    const auto equal = (check(solvers) and ...);
+
+    return equal;
 }
 } // namespace hpc

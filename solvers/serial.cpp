@@ -1,4 +1,5 @@
 #include "solvers/serial.hpp"
+#include "solvers/detail/bin_index.hpp"
 
 #include <algorithm>
 
@@ -31,7 +32,7 @@ namespace hpc {
     };
 
     // Calculate the bins for the whole dataset
-    for (const auto data : dataset) { insert(data); }
+    for (const auto data : dataset) { hpc::detail::insert_to_bin(data, ranges, bin); }
 
     return bin;
 }
