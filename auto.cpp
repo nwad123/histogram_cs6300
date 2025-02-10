@@ -39,7 +39,7 @@ auto main() -> int
         // perform serial timing results
         {
             const auto serial_config = Config(1, bins, min, max, size);
-            for (const auto &result : SolverTimer(serial_config, dataset)(Serial{})) {
+            for (const auto &result : SolverTimer<reps>(serial_config, dataset)(Serial{})) {
                 results.emplace_back(result); // push results into the results array
             }
         }
