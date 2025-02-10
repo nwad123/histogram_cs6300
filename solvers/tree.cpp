@@ -1,4 +1,5 @@
 #include "solvers/tree.hpp"
+#include "solvers/detail/bin_index.hpp"
 #include "solvers/detail/bin_limits.hpp"
 
 #include <algorithm>
@@ -56,7 +57,7 @@ auto Tree::operator()(const Config &config, const std::span<fp> dataset) const -
         };
 
         // Calculate bins for this thread
-        for (const auto data : dataset_slice) { insert(data); }
+        for (const auto data : dataset_slice) { hpc::detail::insert_to_bin(data, ranges, bin); }
 
         // Receive and merge results from other threads
         const auto recv_list = detail::get_receive_list(config.threads, id);
