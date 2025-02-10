@@ -79,6 +79,11 @@ application.
 - src/ 
     - Contains implementation details for shared source files (currently on the command line parser).
 
+## Results 
+
+Overall, this lab showed that more threads equals more faster. See [plots/](./plots/) for more 
+information.
+
 ## Lessons Learned
 
 This small project was a great opportunity to learn some about parallel programming and C++. Here
