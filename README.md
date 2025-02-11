@@ -30,7 +30,7 @@ will implement three histogram generators:
 - a global sum histogram generator (multi threaded),
 - and a tree structed sum historgram generator (multi threaded).
 
-_Looking for my "Lessons Learned" section? Look [here](#-Lessons-Learned)_
+_Looking for my "Lessons Learned" section? Look [here](#-lessons-learned)_
 
 ## Prequisites for Building
 
