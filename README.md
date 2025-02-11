@@ -30,6 +30,8 @@ will implement three histogram generators:
 - a global sum histogram generator (multi threaded),
 - and a tree structed sum historgram generator (multi threaded).
 
+_Looking for my "Lessons Learned" section? Look [here](##lessons-learned)_
+
 ## Prequisites for Building
 
 - Unix-style system (for commands like `mkdir`)
@@ -81,25 +83,33 @@ application.
 
 ## Results 
 
-Overall, this lab showed that more threads equals more faster. See [plots/](./plots/) for more 
-information.
+Overall, this lab showed that more threads produced faster results. I tested the code on my MacBook pro 
+with 12 cores, and saw a good speedup over single-threaded performance up to about 8 threads. After that, 
+adding more threads slightly improved the runtime, but did not give linear improvments. See [plots/](./plots/) 
+for more information.
 
 ## Lessons Learned
 
 This small project was a great opportunity to learn some about parallel programming and C++. Here
 are some of my takeaways:
 
-- Putting all of the simple types into a file called `types.h` is great until you realize that everytime 
-  you change _any_ type, basicaly the entire project has to be recompiled. I think in the future it would be
+- Putting all of the simple types into a file called `types.h` was great until I realized that everytime 
+  I changed _any_ type, basicaly the entire project had to be recompiled. I think in the future it would be
   better to stick different classes in different files, even if they are just pretty short. I think that 
   grouping classes together by expected use scope is probably the way to go.
 - Working with `std` algorithms and not using `for`-loops, pointers, or indices is an excellent way to write 
   code that doesn't crash or segfault, even in the edge cases. I was really impressed with how well my code 
-  handled unexpected-ly sized inputs.
-- Immediately evaluated lambda expressions actually are excellent, despite my original misgivings. I found 
-  them so useful for replacing ternary operators and little assignments where I needed to generate an 
-  intermediate value.
+  handled non-uniformly sized inputs.
+- Immediately evaluated lambda expressions are excellent for computing constants. I found 
+  them so useful for replacing ternary operators and preventing scope pollution with intermediate
+  terms.
 
+  This is the way I used to do calculations that depended on an intermediate value and a predicate. This method
+  works fine, but suffers from a few issues. First, `intermediate` is introduced into the same scope as `value`,
+  even if it's not going to be used anywhere else. Secondly, `value`'s type must be explicity declared and can't be
+  `const` unless the `if/else` statement is collapsed to a ternary operation, which could prove
+  difficult if either branch is a more complex than a single expression. Example:
+  
   ```cpp
   // Old way 
   const auto intermediate = /* some calculation */;
@@ -112,12 +122,8 @@ are some of my takeaways:
   }
   ```
 
-  This is the way I used to do calculations like this. It works fine, but suffers from a few issues that
-  I wish it didn't. First, `intermediate` is introduced into the same scope as `value`, even if it's not
-  going to be needed anywhere else. Secondly, value's type must be explicity declared and can't be `const`
-  unless the `if/else` statement will need to be collapsed to a ternary operation, which could prove
-  difficult if either branch is a little more complex than a single expression. Using a constantly 
-  evaluated lambda can improve this significantly (in my opinion):
+  By using a immediately evaluated lambda expression, we only introduce `value` into the scope of usable
+  variables and we make the calculation of `value` clear to the reader. Example:
 
   ```cpp
   const auto value = [&](){
@@ -132,12 +138,15 @@ are some of my takeaways:
        // of a callable
   ```
 
-  This way, `intermediate` doesn't pollute the same scope as `value`, we can still use `const auto`, and
-  with optimizations turned on the same machine code should get generated.
+  With optimizations enabled, this code should be `constexpr` friendly and should produce similar assembly to
+  that of a ternary operator or normal if statement. Obviously, if this code was a bottleneck in a system it
+  would also be possible to refactor it in such a way to get the machine code that was desired.
+  
 - Setting up simple abstractions that can be optimized away makes for really flexible algorithms and
   code. For the "tree-structured" histogram generator I used semaphores to ensure that all of the
   threads merge their calculations correctly. I wrote a simple class to abstract away the functionality
-  of the semaphores in order to make the algorithm easier to implement, but it actually ended up being 
+  of the semaphores in order to make the algorithm easier to implement, but the abstraction ended up being 
   great for another reason. After talking to my professor about using `std::binary_semaphore` instead of
-  Pthread semaphores I realized that the matter of switching between the two implementations of semaphores
-  was actually pretty straightforward because I had abstracted the specifics away.
+  Pthread semaphores due to the availablility of `std::binary_semaphore` on the cluster we are using for
+  the course, I realized that abstracting away the semaphore specifics made it easy to switch out the
+  semaphore implementation.
