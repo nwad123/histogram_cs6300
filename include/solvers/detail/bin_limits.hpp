@@ -1,10 +1,11 @@
 #pragma once
 
 #include "types.hpp"
+#include <algorithm>
 
 namespace hpc::detail {
 
-/// This function calculates what the bounds are for each bin when given the number of 
+/// This function calculates what the bounds are for each bin when given the number of
 /// bins and the range of the dataset.
 ///
 /// Precondition: `range` must be a sorted pair, where `first <= second` always holds
@@ -18,15 +19,16 @@ static constexpr auto get_bin_steps(
     const auto min = range.first;
 
     std::vector<fp> ranges(num_bins);
-    fp f{ max };
-    fp diff{ (max - min) / static_cast<fp>(num_bins) };
 
-    // TODO: Change this to a algorithm?
-    for (auto it = ranges.rbegin(); it != ranges.rend(); ++it) {
-        auto &element = *it;
-        element = f;
-        f -= diff;
-    }
+    fp init{ min };
+    const fp diff{ (max - min) / static_cast<fp>(num_bins) };
+
+    auto next = [&]() -> fp {
+        init += diff;
+        return init;
+    };
+
+    std::ranges::generate(ranges, next);
 
     return ranges;
 }
