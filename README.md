@@ -36,7 +36,7 @@ _Looking for my "Lessons Learned" section? Look at the bottom of this document._
 
 - Unix-style system (for commands like `mkdir`)
 - CMake 3.22 (or higher) installed
-- C++20 / C++23 compliant compiler (tested on AppleClang 16)
+- C++20 compiler (tested on AppleClang 16)
 - Python 3 
 - Make
 
