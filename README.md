@@ -128,7 +128,8 @@ are some of my takeaways:
     } else {
       return intermediate /* other operation */;
     }
-  };
+  }(); // immediately call the lambda where it's created to get a value instead
+       // of a callable
   ```
 
   This way, `intermediate` doesn't pollute the same scope as `value`, we can still use `const auto`, and
