@@ -5,6 +5,7 @@
 
 namespace hpc {
 /// The `StaticTree` solver...
+/// Unfinished, would require a lot of rework in the rest of the project.
 template<Config config>
 class StaticTree
 {
@@ -33,7 +34,6 @@ auto StaticTree<config>::operator()([[maybe_unused]] const Config &_, const std:
 
     // Get the bounds of the bin
     bin_upper_bounds({config.min, config.max}, ranges);
-
 
     return {};
 }
