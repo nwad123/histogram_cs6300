@@ -36,7 +36,7 @@ namespace hpc {
         for (const auto data : dataset_slice) { hpc::detail::insert_to_bin(data, ranges, bin); }
     };
 
-    auto ranges = detail::get_bin_steps(config.bins, { config.min, config.max });
+    auto ranges = detail::bin_upper_bounds(config.bins, { config.min, config.max });
     auto bins = std::vector<Bin>{ config.threads };
 
     std::vector<thread> threads{};

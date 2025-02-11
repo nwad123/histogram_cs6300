@@ -15,7 +15,7 @@ auto Tree::operator()(const Config &config, const std::span<fp> dataset) const -
     using std::thread;
     using std::ref;
 
-    auto bin_steps = hpc::detail::get_bin_steps(config.bins, { config.min, config.max });
+    auto bin_steps = hpc::detail::bin_upper_bounds(config.bins, { config.min, config.max });
     auto semaphores = detail::ThreadSemaphores(config.threads);
     auto bins = std::vector<Bin>{ config.threads };
 

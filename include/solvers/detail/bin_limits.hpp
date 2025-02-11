@@ -14,7 +14,7 @@ namespace hpc::detail {
 ///
 /// Postcondition:
 ///     `ranges` will be equal to [range.min + 1*step, range.min + 2*step ...]
-static constexpr auto get_bin_steps(
+static constexpr auto bin_upper_bounds(
     /*in*/ const std::pair<fp, fp> range,
     /*inout*/ auto &ranges
 ) -> void
@@ -39,13 +39,13 @@ static constexpr auto get_bin_steps(
 ///
 /// Precondition: `range` must be a sorted pair, where `first <= second` always holds
 [[nodiscard]]
-static constexpr auto get_bin_steps(
+static constexpr auto bin_upper_bounds(
     /*in*/ const size_t num_bins,
     /*in*/ const std::pair<fp, fp> range
 ) -> std::vector<fp>
 {
     std::vector<fp> ranges(num_bins);
-    get_bin_steps(range, ranges);
+    bin_upper_bounds(range, ranges);
 
     return ranges;
 }
